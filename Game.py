@@ -1,6 +1,7 @@
 from DynamicTuple import DynamicTuple
 import pygame
 from Snake import Snake
+from SnakeBot import SnakeBot
 from random import randint
 import time
 
@@ -34,6 +35,7 @@ class Game:
         self.clock = pygame.time.Clock()
 
         self.snake = Snake(self.window.to_tuple())
+        self.snake_bot = SnakeBot(self.window.to_tuple())
 
 
 
@@ -74,11 +76,11 @@ class Game:
         pygame.display.update()
 
     def get_apple_position(self):
-        return DynamicTuple(randint(0, self.window.x - 1),
-                            randint(0, self.window.y - 1))
+        return DynamicTuple(randint(0, self.window.x - SIZE),
+                            randint(0, self.window.y - SIZE))
 
-    def plot_snake(self, direction):
-        for part in self.snake.body_pos: # Plotting the body
+    def plot_snake(self, snake, direction):
+        for part in snake.body_pos: # Plotting the body
             x = part.x
             y = part.y
             pygame.draw.rect(self.gameDiplay, GREEN,
@@ -91,8 +93,8 @@ class Game:
         elif direction == D: head = pygame.transform.rotate(self.imageSnake, 180)
 
         self.gameDiplay.blit(head,
-                             (self.snake.head_pos.x,
-                              self.snake.head_pos.y))
+                             (snake.head_pos.x,
+                              snake.head_pos.y))
 
     def pause_game(self):
         paused = True
@@ -103,12 +105,14 @@ class Game:
         self.message_to_screen('C to Continue', RED, 50, self.window.y // 2 + 150)
         self.message_to_screen('E to Exit', RED, 50, self.window.y // 2 + 200)
         self.update_screen()
-
-        for key in self.get_key_pressed():
-            if key == pygame.K_c:
-                self.main_loop()
-            elif key == pygame.K_e:
-                pygame.quit()
+        while paused:
+            for keyEvent in pygame.event.get(pygame.KEYDOWN):
+                key = keyEvent.key
+                if key == pygame.K_c:
+                    paused = false
+                    return true
+                elif key == pygame.K_e:
+                    return false
 
 
 
@@ -118,70 +122,96 @@ class Game:
         text = self.font.render('Score: {0}'.format(self.snake.length), True, BLACK)
         self.gameDiplay.blit(text, [0, 0])
 
-    def ate_food(self, apple_pos):
-        head = self.snake.head_pos
-        # return (apple_pos.x <= head.x <= apple_pos.x + SIZE and
-        #         apple_pos.y <= head.y <= apple_pos.y + SIZE)
+    @staticmethod
+    def ate_food(snake, apple_pos):
+        head = snake.head_pos
         return (apple_pos <= head <= (apple_pos + DSIZE) or
                 (apple_pos <= (head + DSIZE) <= (apple_pos + DSIZE)))
 
-    def check_collision(self):
-        head = self.snake.head_pos
-        if head.x > self.window.x or head.x < 0 or head.y > self.window.y or head.y < 0:
+    @staticmethod
+    def check_collision(snake, window):
+        head = snake.head_pos
+        if head.x > window.x or head.x < 0 or head.y > window.y or head.y < 0:
             return False
-        for block in self.snake.body_pos:
+        for block in snake.body_pos:
             if block == head:
                 return False
 
         return True
 
-    def main_loop(self):
+    def main_loop(self, bool_player, bool_bot):
         dir = RIGHT
+        dir_bot = LEFT
 
-        playing = True
+        playing = bool_player
+        playing_bot = bool_bot
         apple_position = self.get_apple_position()
+        ate_apple = False
 
-        while playing:
+        if bool_player: self.snake = Snake(self.window.to_tuple())
+        if bool_bot: self.snake_bot = SnakeBot(self.window.to_tuple())
+
+        while playing or playing_bot:
             self.fill(WHITE)
             for event in pygame.event.get(pygame.KEYDOWN):
                 key = event.key
-                if key == pygame.K_p: self.pause_game()
+                if key == pygame.K_p:
+                    b = self.pause_game()
+                    playing = playing and b
+                    playing_bot = playing_bot and b
                 elif key in (pygame.K_RIGHT, pygame.K_d): dir = RIGHT
                 elif key in (pygame.K_LEFT, pygame.K_a): dir = LEFT
                 elif key in (pygame.K_DOWN, pygame.K_s): dir = DOWN
                 elif key in (pygame.K_UP, pygame.K_w): dir = UP
 
-            self.snake.update(dir)
-
             # Plotting food
             self.gameDiplay.blit(self.imageApple,
-                                 (apple_position.x, apple_position.y,
-                                  SIZE, SIZE))
+                                (apple_position.x, apple_position.y,
+                                 SIZE, SIZE))
 
-            # checking for collision
-            self.snake.ate_food = self.ate_food(apple_position)
+            if bool_player:
+                self.snake.update(dir)
 
-            self.plot_snake(dir)
+                self.snake.ate_food = self.ate_food(self.snake, apple_position)
+
+                # self.plot_snake(self.snake, dir)
+
+                playing = self.check_collision(self.snake, self.window)
+
+            if bool_bot:
+                self.snake_bot.update(apple_position)
+
+                self.snake_bot.ate_food = self.ate_food(self.snake_bot, apple_position)
+
+                # self.plot_snake(self.snake_bot, self.snake_bot.get_dir())
+
+                playing_bot = self.check_collision(self.snake_bot, self.window)
+
+            if self.snake.ate_food or self.snake_bot.ate_food:
+                apple_position = self.get_apple_position()
+
+            if bool_player: self.plot_snake(self.snake, dir)
+            if bool_bot: self.plot_snake(self.snake_bot, self.snake_bot.get_dir())
+
             self.display_score()
             self.update_screen()
 
-            if (self.snake.ate_food): apple_position = self.get_apple_position()
+
 
             self.clock.tick(self.FPS)
 
 
-            playing = self.check_collision()
-        self.game_over()
 
-    @staticmethod
-    def get_key_pressed():
-        while True:
-            for event in pygame.event.get(pygame.KEYDOWN):
-                yield event.key
+        # self.game_over()
+
+    # @staticmethod
+    # def get_key_pressed():
+    #     while True:
+    #         for event in pygame.event.get(pygame.KEYDOWN):
+    #             yield event.key
 
 
     def game_over(self):
-        waiting = True
         y = self.window.y//2
         self.fill(WHITE)
         self.message_to_screen('Game Over', GREEN, 100, y -150)
@@ -191,18 +221,55 @@ class Game:
         self.message_to_screen('E to Exit', RED, 50, y + 250)
         self.update_screen()
 
-        for key in self.get_key_pressed():
-            if key == pygame.K_c:
-                self.main_loop()
-            elif key == pygame.K_e:
-                pygame.quit()
-                break
+    def game_start(self):
+        y = self.window.y // 2
+
+        self.fill(WHITE)
+        self.message_to_screen('Welcome', GREEN, 100, y - 150)
+        self.message_to_screen('Press', RED, 50, y + 100)
+        self.message_to_screen('C to play', RED, 50, y + 150)
+        self.message_to_screen('B to play with bot', RED, 50, y + 200)
+        # will remove
+        self.message_to_screen('V to play only bot', RED, 50, y + 250)
+        self.message_to_screen('E to Exit', RED, 50, y + 300)
+        self.update_screen()
 
 
     def game_loop(self):
+        y = self.window.y // 2
         play = true
+        game_over = false
+        game_exit = false
+
+        self.game_start()
+
         while play:
-            pass
+            #STARTNG GAME
+            for keyEvent in pygame.event.get(pygame.KEYDOWN):
+                key = keyEvent.key
+                if not game_over:
+                    if key == pygame.K_c:
+                        self.main_loop(true, false)
+                        game_over = true
+                    elif key == pygame.K_e:
+                        play = false
+                        pygame.quit()
+                    elif key == pygame.K_b:
+                        self.main_loop(true, true)
+                        game_over = true
+                    elif key == pygame.K_v:
+                        self.main_loop(false, true)
+                        game_over = true
+                else:
+                    if key == pygame.K_c:
+                        self.game_start()
+                        game_over = false
+                    elif key == pygame.K_e:
+                        play = false
+            if play and game_over:
+                self.game_over()
+
+
 
 
 
