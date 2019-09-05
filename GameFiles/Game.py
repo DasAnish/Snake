@@ -47,16 +47,16 @@ class Game:
 
 
         ######## Initial stuff
-        self.fill(WHITE)
-        self.message_to_screen("Snake GameFiles", GREEN, 150,
-                               self.window.y // 2 - 150)
-        self.message_to_screen("Press\n" +
-                               "C to Continue\n"+
-                               "E to Exit\n"+
-                               "P to Pause",
-                               RED, 40,
-                               self.window.y // 2 + 100)
-        self.update_screen()
+        # self.fill(WHITE)
+        # self.message_to_screen("Snake GameFiles", GREEN, 150,
+        #                        self.window.y // 2 - 150)
+        # self.message_to_screen("Press\n" +
+        #                        "C to Continue\n"+
+        #                        "E to Exit\n"+
+        #                        "P to Pause",
+        #                        RED, 40,
+        #                        self.window.y // 2 + 100)
+        # self.update_screen()
 
     def text_objects(self, text, color):
         text_surface = self.font.render(text, True, color)
@@ -104,7 +104,12 @@ class Game:
         self.message_to_screen('C to Continue', RED, 50, self.window.y // 2 + 150)
         self.message_to_screen('E to Exit', RED, 50, self.window.y // 2 + 200)
         self.update_screen()
+        b = false
         while paused:
+            for event in pygame.event.get(pygame.QUIT):
+                b = true
+                pygame.quit()
+            if b: break
             for keyEvent in pygame.event.get(pygame.KEYDOWN):
                 key = keyEvent.key
                 if key == pygame.K_c:
@@ -149,9 +154,13 @@ class Game:
 
         if bool_player: self.snake = Snake(self.window.to_tuple())
         if bool_bot: self.snake_bot = SnakeBot(self.window.to_tuple())
-
+        b = false
         while playing or playing_bot:
             self.fill(WHITE)
+            for event in pygame.event.get(pygame.QUIT):
+                pygame.quit()
+                b = true
+            if b: break
             for event in pygame.event.get(pygame.KEYDOWN):
                 key = event.key
                 if key == pygame.K_p:
@@ -170,6 +179,7 @@ class Game:
 
             if bool_player:
                 self.snake.update(dir)
+                print(self.snake.head_pos)
 
                 self.snake.ate_food = self.ate_food(self.snake, apple_position)
 
@@ -213,7 +223,7 @@ class Game:
     def game_over(self):
         y = self.window.y//2
         self.fill(WHITE)
-        self.message_to_screen('GameFiles Over', GREEN, 100, y -150)
+        self.message_to_screen('Game Over', GREEN, 100, y -150)
         self.message_to_screen('Score: %d'%self.snake.length, BLUE, 25, y +100)
         self.message_to_screen('Press', RED, 50, y + 150)
         self.message_to_screen('C to Play again', RED, 50, y + 200)
@@ -225,12 +235,12 @@ class Game:
 
         self.fill(WHITE)
         self.message_to_screen('Welcome', GREEN, 100, y - 150)
-        self.message_to_screen('Press', RED, 50, y + 100)
-        self.message_to_screen('C to play', RED, 50, y + 150)
-        self.message_to_screen('B to play with bot', RED, 50, y + 200)
+        self.message_to_screen('Press', RED, 50, y + 50)
+        self.message_to_screen('C to play', RED, 50, y + 100)
+        self.message_to_screen('B to play with bot', RED, 50, y + 150)
         # will remove
-        self.message_to_screen('V to play only bot', RED, 50, y + 250)
-        self.message_to_screen('E to Exit', RED, 50, y + 300)
+        self.message_to_screen('V to play only bot', RED, 50, y + 200)
+        self.message_to_screen('E to Exit', RED, 50, y + 250)
         self.update_screen()
 
 
@@ -241,8 +251,12 @@ class Game:
         game_exit = false
 
         self.game_start()
-
+        b = false
         while play:
+            for event in pygame.event.get(pygame.QUIT):
+                pygame.quit()
+                b = true
+            if b: break
             #STARTNG GAME
             for keyEvent in pygame.event.get(pygame.KEYDOWN):
                 key = keyEvent.key
