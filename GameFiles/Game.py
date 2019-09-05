@@ -1,9 +1,8 @@
-from DynamicTuple import DynamicTuple
+from GameFiles.DynamicTuple import DynamicTuple
 import pygame
-from Snake import Snake
-from SnakeBot import SnakeBot
+from GameFiles.Snake import Snake
+from GameFiles.SnakeBot import SnakeBot
 from random import randint
-import time
 
 # Constants
 
@@ -49,7 +48,7 @@ class Game:
 
         ######## Initial stuff
         self.fill(WHITE)
-        self.message_to_screen("Snake Game", GREEN, 150,
+        self.message_to_screen("Snake GameFiles", GREEN, 150,
                                self.window.y // 2 - 150)
         self.message_to_screen("Press\n" +
                                "C to Continue\n"+
@@ -214,7 +213,7 @@ class Game:
     def game_over(self):
         y = self.window.y//2
         self.fill(WHITE)
-        self.message_to_screen('Game Over', GREEN, 100, y -150)
+        self.message_to_screen('GameFiles Over', GREEN, 100, y -150)
         self.message_to_screen('Score: %d'%self.snake.length, BLUE, 25, y +100)
         self.message_to_screen('Press', RED, 50, y + 150)
         self.message_to_screen('C to Play again', RED, 50, y + 200)

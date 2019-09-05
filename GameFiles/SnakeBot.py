@@ -1,11 +1,11 @@
-import Game
-from DynamicTuple import DynamicTuple
-from Snake import Snake
+from GameFiles import Game
+from GameFiles.Snake import Snake
 
 class SnakeBot(Snake):
 
     def __init__(self, window_size):
         Snake.__init__(self, window_size)
+        self.starting_nodes = window_size[0] * window_size[1] // (Game.SIZE ** 2)
         self.dir = Game.LEFT
 
     def get_dir(self):

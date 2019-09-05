@@ -1,5 +1,5 @@
-import Game
-from DynamicTuple import DynamicTuple
+from GameFiles import Game
+from GameFiles.DynamicTuple import DynamicTuple
 
 
 class Snake:
