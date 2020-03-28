@@ -1,16 +1,35 @@
 import random
 from Brains.DNA import DNA
+from pickle import load, dump
 
 
 class Population:
 
-    def __init__(self):
+    """This is population which is all the snakes in one generation."""
+
+    def __init__(self, file_name=None):
+        """makes a population of a hard-coded number (20) will change that later on.
+        :file_name must be the preix to the model count"""
         self.population = []
         self.population_size= 20
 
-        # creates a population of 20(population size will change).
+        if file_name is None:
+            # creates a population of 20(population size will change).
+            for i in range(self.population_size):
+                self.population.append(DNA(i))
+            self.file_name = "data/model"
+        else:
+            for i in range(self.population_size):
+                name = file_name+str(i)+".dat"
+                with open(name, "rb") as fileh:
+                    self.population.append(load(fileh))
+
+    def dump(self):
         for i in range(self.population_size):
-            self.population.append(DNA(i))
+            name = self.file_name+str(i)+".dat"
+            with open(name, "wb") as f:
+                dump(self.population[i], f)
+
 
     def create_next_gen(self):
         '''

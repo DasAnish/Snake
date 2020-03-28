@@ -7,15 +7,15 @@ from Brains.DNA import DNA
 
 class SnakeBot(Snake):
 
-    def __init__(self, window_size, dna):
+    def __init__(self, window_size, dna=None):
         Snake.__init__(self, window_size)
         self.starting_nodes = window_size[0] * window_size[1] // (Game.SIZE ** 2)
         self.window = DynamicTuple(window_size)
         self.dir = Game.LEFT
         self.dna = dna
+        self.apples_eaten = 0
 
     def get_dir(self, apple_pos):
-
         headx = self.head_pos.x
         heady = self.head_pos.y
 
@@ -77,21 +77,21 @@ class SnakeBot(Snake):
                   lu_dist, ld_dist, rd_dist, ru_dist,
                   applex, appley]
 
+        activate = lambda x: np.exp(x) / (np.exp(x) + 1)
+        softmax = lambda x: np.exp(x) / sum(np.exp(x))
+
         _layer1 = np.matmul(_input, self.dna.w0) + self.dna.b0
+        _layer1 = activate(_layer1)
 
         _layer2 = np.matmul(_layer1, self.dna.w1) + self.dna.b1
+        _layer2 = activate(_layer2)
 
         _final = np.matmul(_layer2, self.dna.w2) + self.dna.b2
+        _final = softmax(_final)
 
-        return np.argmax(_final)
+        self.dir = np.argmax(_final)
+        return self.dir
 
-
-
-
-
-
-
-
-        # TODO: Implement the Neural Network
         # Snake.update(self, Game.LEFT)
-
+    def update(self, apple_pos):
+        Snake.update(self, self.get_dir(apple_pos))

@@ -4,6 +4,8 @@ from GameFiles.Snake import Snake
 from GameFiles.SnakeBot import SnakeBot
 from random import randint
 
+'''The module which contains the working of the game.'''
+
 # Constants
 
 LEFT = L = 0
@@ -13,7 +15,7 @@ DOWN = D = 3
 SIZE = 20
 DSIZE = DynamicTuple(SIZE, SIZE)
 
-# Colors
+# Constant Colors
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -22,10 +24,13 @@ GREEN = (0, 150, 0)
 BLUE = (0, 0, 150)
 YELLOW = (255, 255, 0)
 
+# Just for syntactic sugars
 true = True
 false = False
 
+
 class Game:
+
     def __init__(self, name, winX, winY, appleFileName, snakeFileName):
         self.window = DynamicTuple(winX, winY)
         self.imageApple = pygame.image.load(appleFileName)
@@ -33,8 +38,8 @@ class Game:
         self.FPS = 16
         self.clock = pygame.time.Clock()
 
-        self.snake = Snake(self.window.to_tuple())
-        self.snake_bot = SnakeBot(self.window.to_tuple())
+        # self.snake = Snake(self.window.to_tuple())
+        # self.snake_bot = SnakeBot(self.window.to_tuple())
 
 
 
@@ -59,26 +64,60 @@ class Game:
         # self.update_screen()
 
     def text_objects(self, text, color):
+        """
+        This function creates a pygame text surface based on the text and color required
+
+        :param text: The text you want rendered
+
+        :param color: The color of the text in a 3-tuple (Z-256)
+
+        :return: text_surface and the rect containing it
+        """
         text_surface = self.font.render(text, True, color)
         return text_surface, text_surface.get_rect()
 
     def message_to_screen(self, text, color, size, y_pos):
+        """
+        This function will render the text you want onto the screen.
+
+        :param text: The text you want rendered.
+
+        :param color: The choice of color in a 3-tuple containing values 0-255
+
+        :param size: The size of the text
+
+        :param y_pos: The vertical displacement you want from the center
+
+        :return: None, since it renders the text.
+        """
         self.font = pygame.font.SysFont('Consolas', size)
         surface, rect = self.text_objects(text, color)
         rect.center = self.window.x  // 2, y_pos
         self.gameDiplay.blit(surface, rect)
 
     def fill(self, color):
+        """Just a helper function to make calls to gameDisplay.fill smaller."""
         self.gameDiplay.fill(color)
 
-    def update_screen(self):
+    @staticmethod
+    def update_screen():
+        """To be called at the end of each frame."""
         pygame.display.update()
 
     def get_apple_position(self):
+        """When an apple is eaten this will return a new random position for the apple."""
         return DynamicTuple(randint(0, self.window.x - SIZE),
                             randint(0, self.window.y - SIZE))
 
     def plot_snake(self, snake, direction):
+        """
+        Renders the snake onto the screen.
+        :param snake: A Snake object which is the snake you want rendered.
+
+        :param direction: The direction of the head, necessary for the orientation of the head.
+
+        :return: None, it is rendering the snake onto the screen.
+        """
         for part in snake.body_pos: # Plotting the body
             x = part.x
             y = part.y
@@ -96,6 +135,7 @@ class Game:
                               snake.head_pos.y))
 
     def pause_game(self):
+        """The function that implements the pause feature for the game."""
         paused = True
         self.fill(WHITE)
         self.message_to_screen('PAUSED', GREEN, 100,
@@ -118,22 +158,25 @@ class Game:
                 elif key == pygame.K_e:
                     return false
 
-
-
-
     def display_score(self):
+        """The helper function to display the score."""
         self.font = pygame.font.SysFont('Consolas', 30)
         text = self.font.render('Score: {0}'.format(self.snake.length), True, BLACK)
         self.gameDiplay.blit(text, [0, 0])
 
     @staticmethod
     def ate_food(snake, apple_pos):
+        """Helper function that will return a boolean for whether the head and apple are in the
+        same position."""
         head = snake.head_pos
         return (apple_pos <= head <= (apple_pos + DSIZE) or
                 (apple_pos <= (head + DSIZE) <= (apple_pos + DSIZE)))
 
     @staticmethod
     def check_collision(snake, window):
+        """Helper function which will check whether the snake has hit the window edges.
+
+        :return: boolean value for the above criteria"""
         head = snake.head_pos
         if head.x > window.x or head.x < 0 or head.y > window.y or head.y < 0:
             return False
@@ -142,7 +185,16 @@ class Game:
 
         return True
 
-    def main_loop(self, bool_player, bool_bot):
+    def main_loop(self, bool_player=True, bool_bot=False):
+        """
+        The main loop for any round in the game.
+
+        :param bool_player: A boolean telling us whether to render the player or not.
+
+        :param bool_bot: A boolean telling us whether to render the snake_bot.
+
+        :return: None, it is an infinite loop (or until the user stops).
+        """
         dir = RIGHT
         dir_bot = LEFT
 
@@ -186,6 +238,9 @@ class Game:
 
                 playing = self.check_collision(self.snake, self.window)
 
+                if self.snake.ate_food:
+                    apple_position = self.get_apple_position()
+
             if bool_bot:
                 self.snake_bot.update(apple_position)
 
@@ -195,8 +250,10 @@ class Game:
 
                 playing_bot = self.check_collision(self.snake_bot, self.window)
 
-            if self.snake.ate_food or self.snake_bot.ate_food:
-                apple_position = self.get_apple_position()
+                if self.snake_bot.ate_food:
+                    apple_position = self.get_apple_position()
+
+
 
             if bool_player: self.plot_snake(self.snake, dir)
             if bool_bot: self.plot_snake(self.snake_bot, self.snake_bot.get_dir())
@@ -204,11 +261,7 @@ class Game:
             self.display_score()
             self.update_screen()
 
-
-
-            self.clock.tick(self.FPS)
-
-
+            # self.clock.tick(self.FPS)
 
         # self.game_over()
 
@@ -218,8 +271,8 @@ class Game:
     #         for event in pygame.event.get(pygame.KEYDOWN):
     #             yield event.key
 
-
     def game_over(self):
+        """The helper function to render the information to screen when the game has ended."""
         y = self.window.y//2
         self.fill(WHITE)
         self.message_to_screen('Game Over', GREEN, 100, y -150)
@@ -230,6 +283,7 @@ class Game:
         self.update_screen()
 
     def game_start(self):
+        """The helper fucntion to render the information to the screen when the game is about to start."""
         y = self.window.y // 2
 
         self.fill(WHITE)
@@ -244,6 +298,8 @@ class Game:
 
 
     def game_loop(self):
+        """The main loop that runs the game. It will call mainloop multiple times, once for
+        each game the user plays."""
         y = self.window.y // 2
         play = true
         game_over = false

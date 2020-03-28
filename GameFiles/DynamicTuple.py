@@ -29,7 +29,7 @@ class DynamicTuple:
     def __str__(self):
         return "(%d, %d)" %(self.x, self.y)
 
-    def _le__(self, other):
+    def __le__(self, other):
         return (self < other) or (self == other)
 
     def __ge__(self, other):
