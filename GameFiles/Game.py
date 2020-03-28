@@ -137,9 +137,8 @@ class Game:
         head = snake.head_pos
         if head.x > window.x or head.x < 0 or head.y > window.y or head.y < 0:
             return False
-        for block in snake.body_pos:
-            if block == head:
-                return False
+        if head in snake.body_pos:
+            return False
 
         return True
 
