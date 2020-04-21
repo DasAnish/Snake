@@ -6,7 +6,7 @@ class Snake:
 
     def __init__(self, window_size):
         self.length = 0
-        self.head_pos = DynamicTuple(window_size[0] // 2, window_size[1] // 2)
+        self.head_pos = DynamicTuple(*window_size) //2
         self.body_pos = []
         # list of tuples
         self.ate_food = False
